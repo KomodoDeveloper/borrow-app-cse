@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="f523c42d-c712-4746-927c-e2b12bca6972" name="play-test-server" url="https://play-tets.unil.ch/">
+        <fileTransfer rootFolder="/var/www/html" accessType="SFTP" host="play-test.unil.ch" port="22" sshConfigId="2a8d0452-d648-4ec7-8114-a31e325c14ec" sshConfig="lgigon@play-test.unil.ch:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
