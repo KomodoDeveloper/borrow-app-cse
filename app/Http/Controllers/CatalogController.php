@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
 use App\Models\Categories;
 use App\Models\Equipments;
+use Illuminate\View\View;
 
 class CatalogController extends Controller
 {

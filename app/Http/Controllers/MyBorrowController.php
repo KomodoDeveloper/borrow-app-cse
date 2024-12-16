@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
 use App\Models\Borrow;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class MyBorrowController extends Controller
 {
