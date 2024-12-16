@@ -15,8 +15,9 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Categories::all();
+
         return view('categories', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -28,7 +29,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         //dd($request);
-        $category = new Categories();
+        $category = new Categories;
         $category->name = $request->input('name');
         $category->description = $request->input('description');
 
@@ -40,8 +41,9 @@ class CategoryController extends Controller
     public function edit($id)
     {
         $category = Categories::find($id);
+
         return view('editcategory', [
-            'category' => $category
+            'category' => $category,
         ]);
     }
 
@@ -52,6 +54,7 @@ class CategoryController extends Controller
         $category->description = $request->input('description');
 
         $category->save();
+
         return redirect()->route('category.index')->with('updateCategory', 'Catégorie mise à jour');
     }
 

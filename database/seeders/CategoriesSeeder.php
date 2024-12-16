@@ -14,17 +14,17 @@ class CategoriesSeeder extends Seeder
      */
     public function run()
     {
-        $category = new Categories();
+        $category = new Categories;
         $category->name = 'Livre';
         $category->description = 'livres, revues, mode d\'emplois, ouvrages techniques, documentations';
         $category->save();
 
-        $category = new Categories();
+        $category = new Categories;
         $category->name = 'Audio';
         $category->description = 'Microphones, Dispositifs d\'aquisiton, accessoires audio, batteries';
         $category->save();
 
-        $category = new Categories();
+        $category = new Categories;
         $category->name = 'Video';
         $category->description = 'Caméras, appareils photo, accessoires vidéo, batteries';
         $category->save();

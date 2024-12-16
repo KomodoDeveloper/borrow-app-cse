@@ -32,15 +32,15 @@ class EquipmentController extends Controller
     public function create()
     {
         $categories = Categories::all();
+
         return view('addequipment', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -49,54 +49,54 @@ class EquipmentController extends Controller
 
         $tmpequi = Equipments::all();
         $tmpequi = $tmpequi->sortByDesc('code')->first();
-        if($tmpequi == null){
-             // start the counter on the first equipment entry in the db table
-             $codeGenerate = 100001;
-        }else{
-             // countinue count with previous code + 1
-             $codeGenerate = $tmpequi->code + 1;
+        if ($tmpequi == null) {
+            // start the counter on the first equipment entry in the db table
+            $codeGenerate = 100001;
+        } else {
+            // countinue count with previous code + 1
+            $codeGenerate = $tmpequi->code + 1;
         }
 
-        $equipment = new Equipments();
+        $equipment = new Equipments;
         $equipment->name = $request->input('name');
         $equipment->description = $request->input('description');
         $equipment->seriallNumber = $request->input('seriallNumber');
         $equipment->ci_number = $request->input('ci_number');
         $equipment->code = $codeGenerate;
 
-        if($request->input('internal')=='true'){
+        if ($request->input('internal') == 'true') {
             $equipment->internal = 1;
-        }else{
+        } else {
             $equipment->internal = 0;
         }
 
         //check if pruduct year is not empty and if it's a valid year
-        if (!empty($request->input('product_year'))) {
-            if(is_numeric($request->input('product_year'))){
-                $inputProductYear = (int)$request->input('product_year');
-                if($inputProductYear <= 1900 || $inputProductYear >=2100) {
+        if (! empty($request->input('product_year'))) {
+            if (is_numeric($request->input('product_year'))) {
+                $inputProductYear = (int) $request->input('product_year');
+                if ($inputProductYear <= 1900 || $inputProductYear >= 2100) {
                     return redirect()->back()->with('errorInField', 'année de production doit être comprise entre 1900 et 2100');
-                }else{
+                } else {
                     $equipment->product_year = $inputProductYear;
                 }
-            }else{
+            } else {
                 return redirect()->back()->with('errorInField', 'année de production doit être un nombre');
             }
         }
 
         //check if purchase_date_month and purchase_date_year are set or not and if it is, tansform to date format and calcul the expiration_date
-        if ($request->input('purchase_date_month') != "99" && $request->input('purchase_date_year') != "9999"){
+        if ($request->input('purchase_date_month') != '99' && $request->input('purchase_date_year') != '9999') {
             // attempt format : 'yyyy-mm-dd'
-            $transformToDate = $request->input('purchase_date_year') . "-" .  $request->input('purchase_date_month') . "-" . "15";
+            $transformToDate = $request->input('purchase_date_year').'-'.$request->input('purchase_date_month').'-'.'15';
             $equipment->purchase_date = $transformToDate;
-            $equipment->expiration_date = date('Y-m-d', strtotime($transformToDate. ' + 6 years'));
+            $equipment->expiration_date = date('Y-m-d', strtotime($transformToDate.' + 6 years'));
         }
 
         $image = $request->file('image');
         $imageFullName = $image->getClientOriginalName();
         $imageName = pathinfo($imageFullName, PATHINFO_FILENAME);
         $extension = $image->getClientOriginalExtension();
-        $file = time() . '_' . $imageName . '.' . $extension;
+        $file = time().'_'.$imageName.'.'.$extension;
         $image->storeAs('public/equipments_images', $file);
 
         $equipment->image = $file;
@@ -120,23 +120,25 @@ class EquipmentController extends Controller
     {
         $equipment = Equipments::find($equipment_id);
         if ($equipment->availability == 0) {
-            $borrow = Borrow::where('equipment_id', '=', $equipment_id)->where('status', '=' ,'borrowed')->first();
+            $borrow = Borrow::where('equipment_id', '=', $equipment_id)->where('status', '=', 'borrowed')->first();
 
-            if($borrow == null){
-                $borrow = Borrow::where('equipment_id', '=', $equipment_id)->where('status', '=' ,'to_control')->get();
+            if ($borrow == null) {
+                $borrow = Borrow::where('equipment_id', '=', $equipment_id)->where('status', '=', 'to_control')->get();
                 $borrow = $borrow->sortByDesc('updated_at')->first();
-                if($borrow !== null){
-                    return view('equipment', compact('equipment','borrow'));
-                }else{
-                    $borrow = Borrow::where('equipment_id', '=', $equipment_id)->where('status', '=' ,'finish')->get();
+                if ($borrow !== null) {
+                    return view('equipment', compact('equipment', 'borrow'));
+                } else {
+                    $borrow = Borrow::where('equipment_id', '=', $equipment_id)->where('status', '=', 'finish')->get();
                     $borrow = $borrow->sortByDesc('updated_at')->first();
                 }
             }
-            return view('equipment', compact('equipment','borrow'));
+
+            return view('equipment', compact('equipment', 'borrow'));
         }
+
         //dd($borrow);
         return view('equipment', [
-           'equipment' => $equipment
+            'equipment' => $equipment,
         ]);
 
     }
@@ -150,20 +152,21 @@ class EquipmentController extends Controller
     {
         $equipment = Equipments::find($id);
         $categories = Categories::all();
-        if(!empty($equipment->purchase_date)){
-            $orignalPurchaseDateAsSplitArray = explode("-", $equipment->purchase_date);
+        if (! empty($equipment->purchase_date)) {
+            $orignalPurchaseDateAsSplitArray = explode('-', $equipment->purchase_date);
             $stored_purchase_month = $orignalPurchaseDateAsSplitArray[1];
             $stored_purchase_year = $orignalPurchaseDateAsSplitArray[0];
-        }else{
-            $stored_purchase_month = "99";
-            $stored_purchase_year ="9999";
+        } else {
+            $stored_purchase_month = '99';
+            $stored_purchase_year = '9999';
         }
+
         //dd($equipment,$categories,$id,$orignalPurchaseDateAsSplitArray,$stored_purchase_month,$stored_purchase_year);
         return view('editequipment', [
             'equipment' => $equipment,
             'categories' => $categories,
             'stored_purchase_month' => $stored_purchase_month,
-            'stored_purchase_year' => $stored_purchase_year
+            'stored_purchase_year' => $stored_purchase_year,
         ]);
     }
 
@@ -176,17 +179,17 @@ class EquipmentController extends Controller
     {
         $equipment = Equipments::find($id);
         $categories = Categories::all();
+
         //dd($equipment,$categories,$id);
         return view('duplicateequipment', [
             'equipment' => $equipment,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
@@ -198,46 +201,46 @@ class EquipmentController extends Controller
         $equipment->seriallNumber = $request->input('seriallNumber');
         $equipment->ci_number = $request->input('ci_number');
 
-        if($request->input('internal')=='true'){
+        if ($request->input('internal') == 'true') {
             $equipment->internal = 1;
-        }else{
+        } else {
             $equipment->internal = 0;
         }
 
-        if($request->input('is_out_of_service')=='true'){
+        if ($request->input('is_out_of_service') == 'true') {
             $equipment->is_out_of_service = 1;
-        }else{
+        } else {
             $equipment->is_out_of_service = 0;
         }
 
         //check if pruduct year is not empty and if it's a valid year
-        if (!empty($request->input('product_year'))) {
-            if(is_numeric($request->input('product_year'))){
-                $inputProductYear = (int)$request->input('product_year');
-                if($inputProductYear <= 1900 || $inputProductYear >=2100) {
+        if (! empty($request->input('product_year'))) {
+            if (is_numeric($request->input('product_year'))) {
+                $inputProductYear = (int) $request->input('product_year');
+                if ($inputProductYear <= 1900 || $inputProductYear >= 2100) {
                     return redirect()->back()->with('errorInField', 'année de production doit être comprise entre 1900 et 2100');
-                }else{
+                } else {
                     $equipment->product_year = $inputProductYear;
                 }
-            }else{
+            } else {
                 return redirect()->back()->with('errorInField', 'année de production doit être un nombre');
             }
         }
 
         //check if purchase_date_month and purchase_date_year are set or not and if it is, tansform to date format and calcul the expiration_date
-        if ($request->input('purchase_date_month') != "99" && $request->input('purchase_date_year') != "9999"){
+        if ($request->input('purchase_date_month') != '99' && $request->input('purchase_date_year') != '9999') {
             // attempt format : 'yyyy-mm-dd'
-            $transformToDate = $request->input('purchase_date_year') . "-" .  $request->input('purchase_date_month') . "-" . "15";
+            $transformToDate = $request->input('purchase_date_year').'-'.$request->input('purchase_date_month').'-'.'15';
             $equipment->purchase_date = $transformToDate;
-            $equipment->expiration_date = date('Y-m-d', strtotime($transformToDate. ' + 6 years'));
+            $equipment->expiration_date = date('Y-m-d', strtotime($transformToDate.' + 6 years'));
         }
 
-        if($request->file('image')) {
+        if ($request->file('image')) {
             $image = $request->file('image');
             $imageFullName = $image->getClientOriginalName();
             $imageName = pathinfo($imageFullName, PATHINFO_FILENAME);
             $extension = $image->getClientOriginalExtension();
-            $file = time() . '_' . $imageName . '.' . $extension;
+            $file = time().'_'.$imageName.'.'.$extension;
             $image->storeAs('public/equipments_images', $file);
             $equipment->image = $file;
         }
@@ -253,7 +256,6 @@ class EquipmentController extends Controller
     /**
      * Store a newly created resource in storage from duplication
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function storeCopy(Request $request, $id)
@@ -263,58 +265,58 @@ class EquipmentController extends Controller
 
         $tmpequi = Equipments::all();
         $tmpequi = $tmpequi->sortByDesc('code')->first();
-        if($tmpequi == null){
+        if ($tmpequi == null) {
             // start the counter on the first equipment entry in the db table
             $codeGenerate = 100001;
-        }else{
+        } else {
             // countinue count with previous code + 1
             $codeGenerate = $tmpequi->code + 1;
         }
 
-        $equipment = new Equipments();
+        $equipment = new Equipments;
         $equipment->name = $request->input('name');
         $equipment->description = $request->input('description');
         $equipment->seriallNumber = $request->input('seriallNumber');
         $equipment->ci_number = $request->input('ci_number');
         $equipment->code = $codeGenerate;
 
-        if($request->input('internal')=='true'){
+        if ($request->input('internal') == 'true') {
             $equipment->internal = 1;
-        }else{
+        } else {
             $equipment->internal = 0;
         }
 
         //check if pruduct year is not empty and if it's a valid year
-        if (!empty($request->input('product_year'))) {
-            if(is_numeric($request->input('product_year'))){
-                $inputProductYear = (int)$request->input('product_year');
-                if($inputProductYear <= 1900 || $inputProductYear >=2100) {
+        if (! empty($request->input('product_year'))) {
+            if (is_numeric($request->input('product_year'))) {
+                $inputProductYear = (int) $request->input('product_year');
+                if ($inputProductYear <= 1900 || $inputProductYear >= 2100) {
                     return redirect()->back()->with('errorInField', 'année de production doit être comprise entre 1900 et 2100');
-                }else{
+                } else {
                     $equipment->product_year = $inputProductYear;
                 }
-            }else{
+            } else {
                 return redirect()->back()->with('errorInField', 'année de production doit être un nombre');
             }
         }
 
         //check if purchase_date_month and purchase_date_year are set or not and if it is, tansform to date format and calcul the expiration_date
-        if ($request->input('purchase_date_month') != "99" && $request->input('purchase_date_year') != "9999"){
+        if ($request->input('purchase_date_month') != '99' && $request->input('purchase_date_year') != '9999') {
             // attempt format : 'yyyy-mm-dd'
-            $transformToDate = $request->input('purchase_date_year') . "-" .  $request->input('purchase_date_month') . "-" . "15";
+            $transformToDate = $request->input('purchase_date_year').'-'.$request->input('purchase_date_month').'-'.'15';
             $equipment->purchase_date = $transformToDate;
-            $equipment->expiration_date = date('Y-m-d', strtotime($transformToDate. ' + 6 years'));
+            $equipment->expiration_date = date('Y-m-d', strtotime($transformToDate.' + 6 years'));
         }
 
-        if($request->file('image')) {
+        if ($request->file('image')) {
             $image = $request->file('image');
             $imageFullName = $image->getClientOriginalName();
             $imageName = pathinfo($imageFullName, PATHINFO_FILENAME);
             $extension = $image->getClientOriginalExtension();
-            $file = time() . '_' . $imageName . '.' . $extension;
+            $file = time().'_'.$imageName.'.'.$extension;
             $image->storeAs('public/equipments_images', $file);
             $equipment->image = $file;
-        }else{
+        } else {
             $equipment->image = $equipmentBaseOn->image;
         }
 
@@ -335,13 +337,14 @@ class EquipmentController extends Controller
     public function destroy($id)
     {
         // check if there are still borrow for this equipment
-        $borrowsForEquipment = Borrow::where('equipment_id',$id)->get();
-        if($borrowsForEquipment->count() === 0) {
+        $borrowsForEquipment = Borrow::where('equipment_id', $id)->get();
+        if ($borrowsForEquipment->count() === 0) {
             $equipment = Equipments::find($id);
             $equipment->categories()->detach($equipment->categories()->get());
             $equipment->delete();
+
             return redirect()->route('catalog.index');
-        }else{
+        } else {
             return redirect()->route('equipment.show', $id)->with('warningEquipment', 'Attention ! Emprunt(s) concernant cet objet toujours en cours ! Vérifiez d\'abord l\'état des prêts');
         }
     }

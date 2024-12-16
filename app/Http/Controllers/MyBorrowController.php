@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Borrow;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class MyBorrowController extends Controller
@@ -16,10 +15,11 @@ class MyBorrowController extends Controller
     public function index()
     {
         $myBorrows = Borrow::where('email_borrower', Auth::user()->email)->get();
-        $myBorrowsFiltered = $myBorrows->where('status','!=','to_control');
+        $myBorrowsFiltered = $myBorrows->where('status', '!=', 'to_control');
+
         //dd($myBorrowsFiltered);
         return view('myborrows', [
-            'myborrows' => $myBorrowsFiltered
+            'myborrows' => $myBorrowsFiltered,
         ]);
     }
 
@@ -33,5 +33,4 @@ class MyBorrowController extends Controller
     {
         //
     }
-
 }

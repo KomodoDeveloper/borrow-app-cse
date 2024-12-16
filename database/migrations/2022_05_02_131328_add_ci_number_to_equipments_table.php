@@ -14,7 +14,7 @@ class AddCiNumberToEquipmentsTable extends Migration
     public function up()
     {
         Schema::table('equipments', function (Blueprint $table) {
-            $table->string('ci_number',6)->nullable()->after('seriallNumber');
+            $table->string('ci_number', 6)->nullable()->after('seriallNumber');
         });
     }
 

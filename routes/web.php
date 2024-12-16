@@ -31,7 +31,7 @@ Route::get('/listinventorymultimedia/', 'AdminController@listInventoryMultimedia
 Route::get('/catalog', 'CatalogController@index')->name('catalog.index');
 Route::get('/catalog/{category_option}', 'CatalogController@getCategory')->name('catalog.getCategory');
 Route::get('/intern/catalog', 'CatalogController@indexIntern')->name('catalog.indexIntern');
-Route::get('/intern/catalog/{category_option}', 'CatalogController@internGetCategory' )->name('catalog.internGetCategory');
+Route::get('/intern/catalog/{category_option}', 'CatalogController@internGetCategory')->name('catalog.internGetCategory');
 
 Route::get('/myborrows', 'MyBorrowController@index')->name('myborrow.index');
 

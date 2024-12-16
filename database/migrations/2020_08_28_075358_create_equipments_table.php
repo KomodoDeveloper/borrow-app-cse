@@ -20,8 +20,8 @@ class CreateEquipmentsTable extends Migration
             $table->string('image')->nullable();
             $table->boolean('availability')->default(1);
             $table->integer('code')->unique();
-            $table->string('seriallNumber',30)->nullable();
-            $table->boolean("internal")->default(0);
+            $table->string('seriallNumber', 30)->nullable();
+            $table->boolean('internal')->default(0);
             $table->timestamps();
         });
     }
