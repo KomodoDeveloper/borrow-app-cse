@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Borrow;
-use App\Models\Categories;
 use App\Models\Equipments;
-use DateInterval;
 use DateTime;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
+use Illuminate\View\View;
 use Swift_Mailer;
 use Swift_Message;
 use Swift_SendmailTransport;
@@ -33,52 +34,50 @@ class BorrowController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         $equipments = Equipments::all();
-        $equipments = $equipments->where('is_out_of_service','!=',1);
+        $equipments = $equipments->where('is_out_of_service', '!=', 1);
+
         return view('newborrow', [
-            'equipments' => $equipments
+            'equipments' => $equipments,
         ]);
     }
 
-    public function customcreate($equipment_id)
+    public function customcreate($equipment_id): View
     {
         $equipment = Equipments::find($equipment_id);
-        $existantBorrows = Borrow::where('equipment_id',$equipment_id)->get();
+        $existantBorrows = Borrow::where('equipment_id', $equipment_id)->get();
         $existantBorrows = $existantBorrows->sortBy('end_date');
+
         return view('newborrowcustom', [
             'equipment' => $equipment,
-            'existantBorrows' => $existantBorrows
+            'existantBorrows' => $existantBorrows,
         ]);
     }
 
-    public function createmany()
+    public function createmany(): View
     {
         $equipments = Equipments::all();
-        $equipments = $equipments->where('is_out_of_service','!=',1);
+        $equipments = $equipments->where('is_out_of_service', '!=', 1);
+
         return view('newborrows', [
-            'equipments' => $equipments
+            'equipments' => $equipments,
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         //check valididty of email adress
-        if (!filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
             return redirect()->back()->with('dateError', 'email invalide');
         }
         //check if checkbox for contract approbation is checked (mandatory)
-        if($request->input('check_contract_borrower')!='true') {
+        if ($request->input('check_contract_borrower') != 'true') {
             return redirect()->back()->with('dateError', 'veuillez accepter les conditions');
         }
         //check if dates fields are empty
@@ -89,19 +88,19 @@ class BorrowController extends Controller
             return redirect()->back()->with('dateError', 'champs date de fin vide');
         }
         //check if the start date is later than the end date
-        if($request->input('start_date') > $request->input('end_date')){
+        if ($request->input('start_date') > $request->input('end_date')) {
             return redirect()->back()->with('dateError', 'date de début plus tard que date de fin');
         }
 
         //check if dates are in competitions with others borrows
-        $existantBorrows = Borrow::where('equipment_id',$request->input('equipment_id'))->get();
+        $existantBorrows = Borrow::where('equipment_id', $request->input('equipment_id'))->get();
         foreach ($existantBorrows as $borrow) {
-            if($borrow->start_date <= $request->input('end_date') && $borrow->end_date >= $request->input('start_date')){
+            if ($borrow->start_date <= $request->input('end_date') && $borrow->end_date >= $request->input('start_date')) {
                 return redirect()->back()->with('dateError', 'dates invalide (autre emprunt touché)');
             }
         }
 
-        $borrow = new Borrow();
+        $borrow = new Borrow;
         $borrow->first_name_borrower = $request->input('first_name_borrower');
         $borrow->surname_borrower = $request->input('surname_borrower');
         $borrow->email_borrower = $request->input('email_borrower');
@@ -111,10 +110,10 @@ class BorrowController extends Controller
         $borrow->reason = $request->input('reason');
         $borrow->start_date = $request->input('start_date');
         $borrow->end_date = $request->input('end_date');
-        $borrow->status = "waiting_validation";
-        if($request->input('need_explanation') == "need"){
+        $borrow->status = 'waiting_validation';
+        if ($request->input('need_explanation') == 'need') {
             $borrow->need_explanation = 1;
-        }elseif($request->input('need_explanation') == "noneed"){
+        } elseif ($request->input('need_explanation') == 'noneed') {
             $borrow->need_explanation = 0;
         }
 
@@ -122,10 +121,10 @@ class BorrowController extends Controller
         $borrow->save();
 
         //for the mail, save in variable the need_explanation choice
-        $need_explanation_message = "";
-        if($borrow->need_explanation ==1) {
-            $need_explanation_message = 'Je ne connais pas bien le matériel et aurais besoin d\'explications/conseils' ;
-        }else{
+        $need_explanation_message = '';
+        if ($borrow->need_explanation == 1) {
+            $need_explanation_message = 'Je ne connais pas bien le matériel et aurais besoin d\'explications/conseils';
+        } else {
             $need_explanation_message = 'Je connais le matériel et n\'aurais pas besoin d\'explications/conseils';
         }
         //send mail summary of my order to borrower
@@ -164,21 +163,20 @@ class BorrowController extends Controller
         $message2 = (new Swift_Message('Nouvelle demande d\'emprunt de matériel'))
             ->setFrom([Config::get('constants.mails.setFrom') => Config::get('constants.mails.defaultName')])
             ->setTo(Config::get('constants.mails.admin'))
-            ->setBody('Bonjour ' . PHP_EOL .
-                PHP_EOL .'Un nouvel emprunt de matériel a été créé' . PHP_EOL .
-                'No emprunt : ' . $borrow->id . PHP_EOL .
-                'Prénom et nom de l\'emprunteur :' . $borrow->first_name_borrower . ' ' . $borrow->surname_borrower . PHP_EOL .
-                'Objet emprunté : ' . $borrow->equipment->name . PHP_EOL .
-                'Motifs : ' . $borrow->reason . PHP_EOL .
-                '' . $need_explanation_message . PHP_EOL .
-                'Date du : ' . $borrow->start_date . ' au ' . $borrow->end_date . PHP_EOL .
-                'Statut de la demande : '. $borrow->status . PHP_EOL .
-                'Responsable de l’enregistrement de la demande du prêt : ' . $borrow->registered_by . PHP_EOL .
-                'Responsable de la gestion du prêt : ' . $borrow->handled_by . PHP_EOL .
-                PHP_EOL . 'Merci de vérifier et de valider ou d\'invalider la demande !' . PHP_EOL . PHP_EOL .
-                'Accédez à la gestion des prêts : https://cse-pret.unil.ch/stateofborrow' . PHP_EOL . PHP_EOL .
-                'Ceci est un mail automatique envoyé par l\'application de prêt')
-        ;
+            ->setBody('Bonjour '.PHP_EOL.
+                PHP_EOL.'Un nouvel emprunt de matériel a été créé'.PHP_EOL.
+                'No emprunt : '.$borrow->id.PHP_EOL.
+                'Prénom et nom de l\'emprunteur :'.$borrow->first_name_borrower.' '.$borrow->surname_borrower.PHP_EOL.
+                'Objet emprunté : '.$borrow->equipment->name.PHP_EOL.
+                'Motifs : '.$borrow->reason.PHP_EOL.
+                ''.$need_explanation_message.PHP_EOL.
+                'Date du : '.$borrow->start_date.' au '.$borrow->end_date.PHP_EOL.
+                'Statut de la demande : '.$borrow->status.PHP_EOL.
+                'Responsable de l’enregistrement de la demande du prêt : '.$borrow->registered_by.PHP_EOL.
+                'Responsable de la gestion du prêt : '.$borrow->handled_by.PHP_EOL.
+                PHP_EOL.'Merci de vérifier et de valider ou d\'invalider la demande !'.PHP_EOL.PHP_EOL.
+                'Accédez à la gestion des prêts : https://cse-pret.unil.ch/stateofborrow'.PHP_EOL.PHP_EOL.
+                'Ceci est un mail automatique envoyé par l\'application de prêt');
         $mailer2->send($message2);
 
         dispatch(function () {
@@ -191,47 +189,40 @@ class BorrowController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $id)
     {
         //
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     *
      */
-    public function edit($id)
+    public function edit(int $id): View
     {
         $borrow = Borrow::find($id);
-        $existantBorrows = Borrow::where('equipment_id',$borrow->equipment_id)->get();
+        $existantBorrows = Borrow::where('equipment_id', $borrow->equipment_id)->get();
         $existantBorrows = $existantBorrows->sortBy('end_date');
+
         return view('editborrow', [
             'borrow' => $borrow,
-            'existantBorrows' => $existantBorrows
+            'existantBorrows' => $existantBorrows,
         ]);
 
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id): RedirectResponse
     {
         //check valididty of email adress
-        if (!filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
             return redirect()->back()->with('dateError', 'email invalide');
         }
         //check if checkbox for contract approbation is checked (mandatory)
-        if($request->input('check_contract_borrower')!='true') {
+        if ($request->input('check_contract_borrower') != 'true') {
             return redirect()->back()->with('dateError', 'veuillez accepter les conditions');
         }
         //check if dates fields are empty
@@ -242,26 +233,26 @@ class BorrowController extends Controller
             return redirect()->back()->with('dateError', 'champs date de fin vide');
         }
         //check if the start date is later than the end date
-        if($request->input('start_date') > $request->input('end_date')){
+        if ($request->input('start_date') > $request->input('end_date')) {
             return redirect()->back()->with('dateError', 'date de début plus tard que date de fin');
         }
 
-        $existantBorrows = Borrow::where('equipment_id',$request->input('equipment_id'))->where('id','!=', $id)->get();
+        $existantBorrows = Borrow::where('equipment_id', $request->input('equipment_id'))->where('id', '!=', $id)->get();
         foreach ($existantBorrows as $borrow) {
-            if($borrow->start_date <= $request->input('end_date') && $borrow->end_date >= $request->input('start_date')){
+            if ($borrow->start_date <= $request->input('end_date') && $borrow->end_date >= $request->input('start_date')) {
                 return redirect()->back()->with('dateError', 'dates invalide (autre emprunt touché)');
             }
         }
 
-        $dateNow = new DateTime();
+        $dateNow = new DateTime;
         $dateNow = $dateNow->format('Y-m-d');
-        if($request->input('status') == 'finish' && $request->input('end_date') > $dateNow) {
+        if ($request->input('status') == 'finish' && $request->input('end_date') > $dateNow) {
             return redirect()->back()->with('dateError', 'Incohérence :  end_date dans le futur et status \'finish\'');
         }
-        if($request->input('status') == 'borrowed' && $request->input('start_date') > $dateNow) {
+        if ($request->input('status') == 'borrowed' && $request->input('start_date') > $dateNow) {
             return redirect()->back()->with('dateError', 'Incohérence :  start_date dans le futur et status \'borrowed\', mettre \'validated\'');
         }
-        if($request->input('status') == 'to_control' && $request->input('start_date') > $dateNow) {
+        if ($request->input('status') == 'to_control' && $request->input('start_date') > $dateNow) {
             return redirect()->back()->with('dateError', 'Incohérence :  start_date dans le futur et status \'to_control\'');
         }
 
@@ -276,9 +267,9 @@ class BorrowController extends Controller
         $borrow->reason = $request->input('reason');
         $borrow->start_date = $request->input('start_date');
         $borrow->end_date = $request->input('end_date');
-        if($request->input('need_explanation') == "need"){
+        if ($request->input('need_explanation') == 'need') {
             $borrow->need_explanation = 1;
-        }elseif($request->input('need_explanation') == "noneed"){
+        } elseif ($request->input('need_explanation') == 'noneed') {
             $borrow->need_explanation = 0;
         }
 
@@ -293,18 +284,15 @@ class BorrowController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
-    public function storemany(Request $request)
+    public function storemany(Request $request): RedirectResponse
     {
         //check valididty of email adress
-        if (!filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
             return redirect()->back()->with('dateError', 'email invalide');
         }
         //check if checkbox for contract approbation is checked (mandatory)
-        if($request->input('check_contract_borrower')!='true') {
+        if ($request->input('check_contract_borrower') != 'true') {
             return redirect()->back()->with('dateError', 'veuillez accepter les conditions');
         }
         //check if dates fields are empty
@@ -315,15 +303,15 @@ class BorrowController extends Controller
             return redirect()->back()->with('dateError', 'champs date de fin vide');
         }
         //check if the start date is later than the end date
-        if($request->input('start_date') > $request->input('end_date')){
+        if ($request->input('start_date') > $request->input('end_date')) {
             return redirect()->back()->with('dateError', 'date de début plus tard que date de fin');
         }
 
         //extract equipments codes, find equipment relative in database and create a array of them
         $codesInRequest = $request->input('equipment_code');
-        $codesArray = explode (",", $codesInRequest);
-        $equipmentsArray = array();
-        foreach ($codesArray as $code){
+        $codesArray = explode(',', $codesInRequest);
+        $equipmentsArray = [];
+        foreach ($codesArray as $code) {
             if (is_numeric($code)) {
                 if (Equipments::where('code', '=', $code)->exists()) {
                     $equipemt = Equipments::where('code', '=', $code)->first();
@@ -349,7 +337,7 @@ class BorrowController extends Controller
         //dd($equipmentsArray);
         //create borrow for each equipment
         foreach ($equipmentsArray as $equipment) {
-            $borrow = new Borrow();
+            $borrow = new Borrow;
             $borrow->first_name_borrower = $request->input('first_name_borrower');
             $borrow->surname_borrower = $request->input('surname_borrower');
             $borrow->email_borrower = $request->input('email_borrower');
@@ -359,17 +347,17 @@ class BorrowController extends Controller
             $borrow->reason = $request->input('reason');
             $borrow->start_date = $request->input('start_date');
             $borrow->end_date = $request->input('end_date');
-            $borrow->status = "waiting_validation";
-            if ($request->input('need_explanation') == "need") {
+            $borrow->status = 'waiting_validation';
+            if ($request->input('need_explanation') == 'need') {
                 $borrow->need_explanation = 1;
-            } elseif ($request->input('need_explanation') == "noneed") {
+            } elseif ($request->input('need_explanation') == 'noneed') {
                 $borrow->need_explanation = 0;
             }
 
             $borrow->save();
 
             //for the mail, save in variable the need_explanation choice
-            $need_explanation_message = "";
+            $need_explanation_message = '';
             if ($borrow->need_explanation == 1) {
                 $need_explanation_message = 'Je ne connais pas bien le matériel et aurais besoin d\'explications/conseils';
             } else {
@@ -410,19 +398,19 @@ class BorrowController extends Controller
             $message2 = (new Swift_Message('Nouvelle demande d\'emprunt de matériel'))
                 ->setFrom([Config::get('constants.mails.setFrom') => Config::get('constants.mails.defaultName')])
                 ->setTo(Config::get('constants.mails.admin'))
-                ->setBody('Bonjour ' . PHP_EOL .
-                    PHP_EOL . 'Une nouvelle demande d\'emprunt de matériel a été effectuée' . PHP_EOL .
-                    'No emprunt : ' . $borrow->id . PHP_EOL .
-                    'Prénom et nom de l\'emprunteur :' . $borrow->first_name_borrower . ' ' . $borrow->surname_borrower . PHP_EOL .
-                    'Objet emprunté : ' . $borrow->equipment->name . PHP_EOL .
-                    'Motifs : ' . $borrow->reason . PHP_EOL .
-                    '' . $need_explanation_message . PHP_EOL .
-                    'Date du : ' . $borrow->start_date . ' au ' . $borrow->end_date . PHP_EOL .
-                    'Statut de la demande : ' . $borrow->status . PHP_EOL .
-                    'Responsable de l’enregistrement de la demande du prêt : ' . $borrow->registered_by . PHP_EOL .
-                    'Responsable de la gestion du prêt : ' . $borrow->handled_by . PHP_EOL .
-                    PHP_EOL . 'Merci de vérifier et de valider ou d\'invalider la demande !' . PHP_EOL . PHP_EOL .
-                    'Accédez à la gestion des prêts : https://cse-pret.unil.ch/stateofborrow' . PHP_EOL . PHP_EOL .
+                ->setBody('Bonjour '.PHP_EOL.
+                    PHP_EOL.'Une nouvelle demande d\'emprunt de matériel a été effectuée'.PHP_EOL.
+                    'No emprunt : '.$borrow->id.PHP_EOL.
+                    'Prénom et nom de l\'emprunteur :'.$borrow->first_name_borrower.' '.$borrow->surname_borrower.PHP_EOL.
+                    'Objet emprunté : '.$borrow->equipment->name.PHP_EOL.
+                    'Motifs : '.$borrow->reason.PHP_EOL.
+                    ''.$need_explanation_message.PHP_EOL.
+                    'Date du : '.$borrow->start_date.' au '.$borrow->end_date.PHP_EOL.
+                    'Statut de la demande : '.$borrow->status.PHP_EOL.
+                    'Responsable de l’enregistrement de la demande du prêt : '.$borrow->registered_by.PHP_EOL.
+                    'Responsable de la gestion du prêt : '.$borrow->handled_by.PHP_EOL.
+                    PHP_EOL.'Merci de vérifier et de valider ou d\'invalider la demande !'.PHP_EOL.PHP_EOL.
+                    'Accédez à la gestion des prêts : https://cse-pret.unil.ch/stateofborrow'.PHP_EOL.PHP_EOL.
                     'Ceci est un mail automatique envoyé par l\'application de prêt');
             $mailer2->send($message2);
 
@@ -437,18 +425,17 @@ class BorrowController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $id)
     {
         //
     }
 
-    public function planned(Request $request )
+    public function planned(Request $request): JsonResponse
     {
         $html = '';
-        $existantBorrows = Borrow::where('equipment_id',$request->equipment_id)->get();
+        $existantBorrows = Borrow::where('equipment_id', $request->equipment_id)->get();
         $existantBorrows = $existantBorrows->sortBy('end_date');
         $html .= '<h6>Emprunts planifiés</h6>';
         foreach ($existantBorrows as $existantBorrow) {
@@ -477,6 +464,7 @@ class BorrowController extends Controller
                     </div>';
 
         }
+
         return response()->json(['html' => $html]);
     }
 }

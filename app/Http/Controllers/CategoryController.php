@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Categories;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
@@ -12,23 +14,24 @@ class CategoryController extends Controller
         $this->middleware('checkaai');
     }
 
-    public function index()
+    public function index(): View
     {
         $categories = Categories::all();
+
         return view('categories', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('addcategory');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         //dd($request);
-        $category = new Categories();
+        $category = new Categories;
         $category->name = $request->input('name');
         $category->description = $request->input('description');
 
@@ -37,25 +40,27 @@ class CategoryController extends Controller
         return redirect()->route('category.index')->with('addCategory', 'Nouvelle catégorie ajoutée');
     }
 
-    public function edit($id)
+    public function edit($id): View
     {
         $category = Categories::find($id);
+
         return view('editcategory', [
-            'category' => $category
+            'category' => $category,
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): RedirectResponse
     {
         $category = Categories::find($id);
         $category->name = $request->input('name');
         $category->description = $request->input('description');
 
         $category->save();
+
         return redirect()->route('category.index')->with('updateCategory', 'Catégorie mise à jour');
     }
 
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
         $category = Categories::find($id);
         $category->equipments()->detach($category->equipments()->get());

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Borrow;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class MyBorrowController extends Controller
 {
@@ -13,25 +13,24 @@ class MyBorrowController extends Controller
         $this->middleware('checkaai');
     }
 
-    public function index()
+    public function index(): View
     {
         $myBorrows = Borrow::where('email_borrower', Auth::user()->email)->get();
-        $myBorrowsFiltered = $myBorrows->where('status','!=','to_control');
+        $myBorrowsFiltered = $myBorrows->where('status', '!=', 'to_control');
+
         //dd($myBorrowsFiltered);
         return view('myborrows', [
-            'myborrows' => $myBorrowsFiltered
+            'myborrows' => $myBorrowsFiltered,
         ]);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $id)
     {
         //
     }
-
 }

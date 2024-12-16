@@ -4,14 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateEquipmentsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('equipments', function (Blueprint $table) {
             $table->id();
@@ -20,19 +18,17 @@ class CreateEquipmentsTable extends Migration
             $table->string('image')->nullable();
             $table->boolean('availability')->default(1);
             $table->integer('code')->unique();
-            $table->string('seriallNumber',30)->nullable();
-            $table->boolean("internal")->default(0);
+            $table->string('seriallNumber', 30)->nullable();
+            $table->boolean('internal')->default(0);
             $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('equipments');
     }
-}
+};

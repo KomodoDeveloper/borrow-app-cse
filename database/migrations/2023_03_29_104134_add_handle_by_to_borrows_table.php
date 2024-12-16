@@ -4,14 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddHandleByToBorrowsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::table('borrows', function (Blueprint $table) {
             $table->string('handled_by')->nullable();
@@ -21,14 +19,12 @@ class AddHandleByToBorrowsTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::table('borrows', function (Blueprint $table) {
             $table->dropColumn('handled_by');
             $table->dropColumn('registered_by');
         });
     }
-}
+};
