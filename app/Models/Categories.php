@@ -8,7 +8,7 @@ class Categories extends Model
 {
     public function equipments()
     {
-        return $this->belongsToMany('App\Models\Equipments');
+        return $this->belongsToMany(\App\Models\Equipments::class);
     }
 
     //protected $table = 'post';

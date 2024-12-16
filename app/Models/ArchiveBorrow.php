@@ -8,12 +8,12 @@ class ArchiveBorrow extends Model
 {
     public function equipment()
     {
-        return $this->belongsTo('App\Models\Equipments');
+        return $this->belongsTo(\App\Models\Equipments::class);
     }
 
     public function a_equipment()
     {
-        return $this->belongsTo('App\Models\Equipments');
+        return $this->belongsTo(\App\Models\Equipments::class);
     }
 
     //protected $table = 'post';
