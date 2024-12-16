@@ -42,7 +42,7 @@ class CheckBorrowReturn extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         $borrows = Borrow::all();
         $transport = new Swift_SendmailTransport('/usr/sbin/sendmail -bs');

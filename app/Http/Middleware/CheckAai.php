@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use Illuminate\Http\Request;
 use App\Models\User;
 use Closure;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +16,7 @@ class CheckAai
      * @param  Request  $request
      * @return mixed
      */
-    public function handle($request, Closure $next)
+    public function handle(Request $request, Closure $next)
     {
         // Check if user is authenticated
         if (Auth::user()) {

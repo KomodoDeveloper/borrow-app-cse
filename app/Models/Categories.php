@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Model;
 
 class Categories extends Model
 {
-    public function equipments()
+    public function equipments(): BelongsToMany
     {
         return $this->belongsToMany(\App\Models\Equipments::class);
     }

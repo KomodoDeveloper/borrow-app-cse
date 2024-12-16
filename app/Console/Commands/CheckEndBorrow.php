@@ -42,7 +42,7 @@ class CheckEndBorrow extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         $borrows = Borrow::all();
         foreach ($borrows as $borrow) {

@@ -11,7 +11,7 @@ return new class extends Migration
      *
      * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::table('archive_borrows', function (Blueprint $table) {
             $table->integer('origin_id');
@@ -23,7 +23,7 @@ return new class extends Migration
      *
      * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::table('archive_borrows', function (Blueprint $table) {
             $table->dropColumn('origin_id');

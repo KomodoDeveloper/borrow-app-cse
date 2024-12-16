@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 
 class ArchiveBorrow extends Model
 {
-    public function equipment()
+    public function equipment(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Equipments::class);
     }
 
-    public function a_equipment()
+    public function a_equipment(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Equipments::class);
     }
