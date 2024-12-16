@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Equipments extends Model
 {
     public function categories() {
-        return $this->belongsToMany('App\Models\Categories');
+        return $this->belongsToMany(\App\Models\Categories::class);
     }
 
     public function borrows() {
-        return $this->hasMany('App\Models\Borrow');
+        return $this->hasMany(\App\Models\Borrow::class);
     }
 
     public function aborrows() {
-        return $this->hasMany('App\Models\ArchiveBorrow');
+        return $this->hasMany(\App\Models\ArchiveBorrow::class);
     }
 
     //protected $table = 'post';
