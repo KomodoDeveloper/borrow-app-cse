@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\View\View;
 use App\Models\ArchiveBorrow;
 use App\Models\Equipments;
 use DateInterval;
@@ -22,7 +23,7 @@ class AdminController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         //echo '<pre>';
         //print_r($_SERVER);
@@ -30,7 +31,7 @@ class AdminController extends Controller
         return view('admin');
     }
 
-    public function scan()
+    public function scan(): View
     {
         return view('scan');
     }
@@ -47,7 +48,7 @@ class AdminController extends Controller
 
     }
 
-    public function archiveBorrowsIndex()
+    public function archiveBorrowsIndex(): View
     {
         $archiveBorrows = ArchiveBorrow::orderBy('a_equipment_id', 'asc')->orderBy('a_start_date', 'desc')->get();
 
@@ -57,7 +58,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function listInventoryCollaborators()
+    public function listInventoryCollaborators(): View
     {
         $allInventoryCollaborators = DB::table('borrows')
             ->join('users', 'users.email', '=', 'borrows.email_borrower')
@@ -91,7 +92,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function listInventoryMultimedia()
+    public function listInventoryMultimedia(): View
     {
         // get all equipments tagged by multimedian category and give them to view datatable like
         $allEquipments = Equipments::all();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\View\View;
 use App\Models\Categories;
 use App\Models\Equipments;
 
@@ -17,7 +18,7 @@ class CatalogController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         $categories = Categories::all();
         $categories = $categories->sortBy('name');
@@ -27,7 +28,7 @@ class CatalogController extends Controller
         return view('catalog', ['equipments' => $equipments, 'categories' => $categories]);
     }
 
-    public function indexIntern()
+    public function indexIntern(): View
     {
         $categories = Categories::all();
         $categories = $categories->sortBy('name');
@@ -37,7 +38,7 @@ class CatalogController extends Controller
         return view('catalogintern', ['equipments' => $equipments, 'categories' => $categories]);
     }
 
-    public function getCategory($getCategory)
+    public function getCategory($getCategory): View
     {
         $categories = Categories::all();
         $equipmentsNotSorted = Equipments::whereHas('categories', function ($q) use ($getCategory) {
@@ -51,7 +52,7 @@ class CatalogController extends Controller
         return view('catalog', ['equipments' => $equipments, 'categories' => $categories]);
     }
 
-    public function internGetCategory($getCategory)
+    public function internGetCategory($getCategory): View
     {
         $categories = Categories::all();
         $equipmentsNotSorted = Equipments::whereHas('categories', function ($q) use ($getCategory) {
@@ -68,7 +69,7 @@ class CatalogController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $id)
     {
         //
     }

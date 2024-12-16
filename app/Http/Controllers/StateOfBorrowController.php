@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use App\Models\ArchiveBorrow;
 use App\Models\Borrow;
 use App\Models\Equipments;
@@ -26,7 +29,7 @@ class StateOfBorrowController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         $borrowsNotSorted = Borrow::all();
         $borrows = $borrowsNotSorted->where('status', '!=', 'to_control')->sortBy('end_date');
@@ -36,7 +39,7 @@ class StateOfBorrowController extends Controller
         ]);
     }
 
-    public function tocontrolindex()
+    public function tocontrolindex(): View
     {
         $borrowsToControl = Borrow::where('status', 'to_control')->get();
         $borrowsToControl = $borrowsToControl->sortBy('end_date');
@@ -47,7 +50,7 @@ class StateOfBorrowController extends Controller
 
     }
 
-    public function returnBorrow($borrow_id)
+    public function returnBorrow($borrow_id): RedirectResponse
     {
         $borrow = Borrow::find($borrow_id);
         $borrow->status = 'to_control';
@@ -78,7 +81,7 @@ class StateOfBorrowController extends Controller
 
     }
 
-    public function archivedBorrow($borrow_id)
+    public function archivedBorrow($borrow_id): RedirectResponse
     {
         $borrow = Borrow::find($borrow_id);
         //$equipment = Equipments::find($borrow->equipment_id);
@@ -122,7 +125,7 @@ class StateOfBorrowController extends Controller
         return redirect()->back()->with('deleteBorrow', 'Emprunt archivé');
     }
 
-    public function updateAvailability(Request $request)
+    public function updateAvailability(Request $request): JsonResponse
     {
         $transport = new Swift_SendmailTransport('/usr/sbin/sendmail -bs');
         $mailer = new Swift_Mailer($transport);
@@ -197,7 +200,7 @@ class StateOfBorrowController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $id)
     {
         //
     }
@@ -208,7 +211,7 @@ class StateOfBorrowController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         //
     }
@@ -219,7 +222,7 @@ class StateOfBorrowController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $id): RedirectResponse
     {
         //delete a borrow without archive (in case ouf we create a borrow with error)
         $borrow = Borrow::find($id);

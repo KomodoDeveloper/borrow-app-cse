@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 use App\Models\Categories;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,7 @@ class CategoryController extends Controller
         $this->middleware('checkaai');
     }
 
-    public function index()
+    public function index(): View
     {
         $categories = Categories::all();
 
@@ -21,12 +23,12 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): View
     {
         return view('addcategory');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         //dd($request);
         $category = new Categories;
@@ -38,7 +40,7 @@ class CategoryController extends Controller
         return redirect()->route('category.index')->with('addCategory', 'Nouvelle catégorie ajoutée');
     }
 
-    public function edit($id)
+    public function edit($id): View
     {
         $category = Categories::find($id);
 
@@ -47,7 +49,7 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): RedirectResponse
     {
         $category = Categories::find($id);
         $category->name = $request->input('name');
@@ -58,7 +60,7 @@ class CategoryController extends Controller
         return redirect()->route('category.index')->with('updateCategory', 'Catégorie mise à jour');
     }
 
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
         $category = Categories::find($id);
         $category->equipments()->detach($category->equipments()->get());

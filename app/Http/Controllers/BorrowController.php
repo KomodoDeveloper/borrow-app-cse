@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use App\Models\Borrow;
 use App\Models\Equipments;
 use DateTime;
@@ -34,7 +37,7 @@ class BorrowController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         $equipments = Equipments::all();
         $equipments = $equipments->where('is_out_of_service', '!=', 1);
@@ -44,7 +47,7 @@ class BorrowController extends Controller
         ]);
     }
 
-    public function customcreate($equipment_id)
+    public function customcreate($equipment_id): View
     {
         $equipment = Equipments::find($equipment_id);
         $existantBorrows = Borrow::where('equipment_id', $equipment_id)->get();
@@ -56,7 +59,7 @@ class BorrowController extends Controller
         ]);
     }
 
-    public function createmany()
+    public function createmany(): View
     {
         $equipments = Equipments::all();
         $equipments = $equipments->where('is_out_of_service', '!=', 1);
@@ -71,7 +74,7 @@ class BorrowController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         //check valididty of email adress
         if (! filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
@@ -193,7 +196,7 @@ class BorrowController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $id)
     {
         //
     }
@@ -203,7 +206,7 @@ class BorrowController extends Controller
      *
      * @param  int  $id
      */
-    public function edit($id)
+    public function edit(int $id): View
     {
         $borrow = Borrow::find($id);
         $existantBorrows = Borrow::where('equipment_id', $borrow->equipment_id)->get();
@@ -222,7 +225,7 @@ class BorrowController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id): RedirectResponse
     {
         //check valididty of email adress
         if (! filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
@@ -294,7 +297,7 @@ class BorrowController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function storemany(Request $request)
+    public function storemany(Request $request): RedirectResponse
     {
         //check valididty of email adress
         if (! filter_var($request->input('email_borrower'), FILTER_VALIDATE_EMAIL)) {
@@ -437,12 +440,12 @@ class BorrowController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $id)
     {
         //
     }
 
-    public function planned(Request $request)
+    public function planned(Request $request): JsonResponse
     {
         $html = '';
         $existantBorrows = Borrow::where('equipment_id', $request->equipment_id)->get();

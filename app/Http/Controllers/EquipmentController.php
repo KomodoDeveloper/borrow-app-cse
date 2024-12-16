@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 use App\Models\Borrow;
 use App\Models\Categories;
 use App\Models\Equipments;
@@ -29,7 +31,7 @@ class EquipmentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         $categories = Categories::all();
 
@@ -43,7 +45,7 @@ class EquipmentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $codeGenerate = 0;
 
@@ -116,7 +118,7 @@ class EquipmentController extends Controller
      *
      * @param  int  $equipment_id
      */
-    public function show($equipment_id)
+    public function show(int $equipment_id): View
     {
         $equipment = Equipments::find($equipment_id);
         if ($equipment->availability == 0) {
@@ -148,7 +150,7 @@ class EquipmentController extends Controller
      *
      * @param  int  $id
      */
-    public function edit($id)
+    public function edit(int $id): View
     {
         $equipment = Equipments::find($id);
         $categories = Categories::all();
@@ -175,7 +177,7 @@ class EquipmentController extends Controller
      *
      * @param  int  $id
      */
-    public function duplicate($id)
+    public function duplicate(int $id): View
     {
         $equipment = Equipments::find($id);
         $categories = Categories::all();
@@ -193,7 +195,7 @@ class EquipmentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id): RedirectResponse
     {
         $equipment = Equipments::find($id);
         $equipment->name = $request->input('name');
@@ -258,7 +260,7 @@ class EquipmentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function storeCopy(Request $request, $id)
+    public function storeCopy(Request $request, $id): RedirectResponse
     {
         $equipmentBaseOn = Equipments::find($id);
         $codeGenerate = 0;
@@ -334,7 +336,7 @@ class EquipmentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $id): RedirectResponse
     {
         // check if there are still borrow for this equipment
         $borrowsForEquipment = Borrow::where('equipment_id', $id)->get();
