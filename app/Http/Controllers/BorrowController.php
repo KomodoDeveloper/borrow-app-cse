@@ -322,7 +322,7 @@ class BorrowController extends Controller
         //extract equipments codes, find equipment relative in database and create a array of them
         $codesInRequest = $request->input('equipment_code');
         $codesArray = explode (",", $codesInRequest);
-        $equipmentsArray = array();
+        $equipmentsArray = [];
         foreach ($codesArray as $code){
             if (is_numeric($code)) {
                 if (Equipments::where('code', '=', $code)->exists()) {

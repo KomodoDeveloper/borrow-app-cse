@@ -93,7 +93,7 @@ class AdminController extends Controller
     {
         // get all equipments tagged by multimedian category and give them to view datatable like
         $allEquipments = Equipments::all();
-        $allEquipmentsTaggedMultimedia = array();
+        $allEquipmentsTaggedMultimedia = [];
         $selectedCategory = Config::get('constants.others.categorySelected');
         foreach ($allEquipments as $equipment){
             $itsCategories = $equipment->categories()->get();
